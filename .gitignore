@@ -17,3 +17,6 @@ data
 # notebook
 notebook/.ipynb_checkpoints
 notebook/*.log
+
+# unity logs
+*.log
