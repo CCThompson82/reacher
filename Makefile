@@ -64,7 +64,11 @@ sync-to-source: ## sync local data to data source
 	cp -r ./data/* $(DATA_SOURCE)/
 
 create-container: ## create docker container
-	$(DOCKER) run -it -v $(PWD):/work -p $(JUPYTER_HOST_PORT):$(JUPYTER_CONTAINER_PORT) --name $(CONTAINER_NAME) $(IMAGE_NAME)
+	$(DOCKER) run -it \
+	-v $(PWD):/workdir \
+	-v $(DATA_SOURCE):/workdir/data \
+	-p $(JUPYTER_HOST_PORT):$(JUPYTER_CONTAINER_PORT) \
+	--name $(CONTAINER_NAME) $(IMAGE_NAME)
 
 start-container: ## start docker container
 	@echo "$$START_DOCKER_CONTAINER" | $(SHELL)
