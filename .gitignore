@@ -1,0 +1,19 @@
+# emacs
+*~
+
+# compiled
+*.pyc
+
+# IntelliJ
+.idea
+*.iml
+
+# model
+model
+
+# data
+data
+
+# notebook
+notebook/.ipynb_checkpoints
+notebook/*.log
