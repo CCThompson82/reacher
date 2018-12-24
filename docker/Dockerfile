@@ -1,21 +1,18 @@
-FROM nvidia/cuda:8.0-cudnn5-devel-ubuntu16.04
+FROM ccthompson82/drlnd:0.0.6
 
+################################################################################
+#  Install Headless Unity Banana Navigation Environment
+################################################################################
+WORKDIR /tmp
+RUN wget -q https://s3-us-west-1.amazonaws.com/udacity-drlnd/P2/Reacher/Reacher_Linux_NoVis.zip  && \
+    unzip Reacher_Linux_NoVis.zip -d /usr/lib/
 
-RUN apt-get update && apt-get install -y \
-  git \
-  python3.5 \
-  python3-pip \
-  python3-dev
+ENV UNITY_ENV_PATH="/usr/lib/Reacher_Linux_NoVis/Reacher.x86_64"
 
-RUN pip3 install --upgrade pip
-
-COPY ./requirements.txt /requirements.txt
-RUN pip install -r /requirements.txt
-
-ARG UID
-RUN useradd docker -l -u $UID -s /bin/bash -m
-USER docker
-
-WORKDIR /work
-
+################################################################################
+#  setup environment
+################################################################################
+USER $UID
+WORKDIR /workdir
+ENV ROOT_DIR=/workdir
 ENTRYPOINT ["/bin/bash"]
