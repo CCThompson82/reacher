@@ -38,13 +38,8 @@ class ModelClient(object):
     def load_model(model_config, hyperparams_config, env_config):
 
         model_name = model_config['model_name']
-        experiment_id = model_config['experiment']
-        overwrite_experiment = model_config['overwrite_experiment']
-
         Model = locate('model.{}.model.Model'.format(model_name))
-        model = Model(experiment_id=experiment_id,
-                      overwrite_experiment=overwrite_experiment,
-                      nb_state_features=nb_state_features,
-                      nb_actions=nb_actions,
-                      hyperparams=hyperparams)
+        model = Model(model_config=model_config,
+                      hyperparam_config=hyperparams_config,
+                      env_config=env_config)
         return model
