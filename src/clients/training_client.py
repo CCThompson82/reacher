@@ -64,3 +64,9 @@ class ModelClient(object):
         if np.any(np.fabs(actions) > 1.0):
             raise ValueError('Continuous actions cannot exceed absolute of 1')
         return actions
+
+    def store_experience(self, states, actions, rewards, next_states,
+                         episode_statuses):
+        self.model.store_experience(states, actions, rewards, next_states,
+                                    episode_statuses)
+
