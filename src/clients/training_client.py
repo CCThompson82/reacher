@@ -48,8 +48,11 @@ class ModelClient(object):
         return model
 
     def training_finished(self):
-        return self.model.terminate_training_status(
-            np.mean(self.state['episode_counts']))
+        return self.model.terminate_training_status(**self.state)
+
+    def terminate_episode(self, max_reached_statuses, local_done_statuses):
+        return self.model.terminate_episode_status(
+            max_reached_statuses, local_done_statuses)
 
     @property
     def progress_bar(self):

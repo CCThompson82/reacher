@@ -43,3 +43,17 @@ if __name__ == '__main__':
         pbar.set_postfix(
             ordered_dict=client.progress_bar)
         pbar.update()
+
+        # reset for new episodes
+        env_info = env.reset(train_mode=True)[brain.brain_name]
+        state = env_info.vector_observations
+
+        while not client.terminate_episode(
+                max_reached_statuses=env_info.max_reached,
+                local_done_statuses=env_info.local_done):
+            print('Running episode')
+            break
+        print('Finished episode')
+        break
+
+
