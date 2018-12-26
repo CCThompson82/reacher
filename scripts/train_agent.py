@@ -64,6 +64,9 @@ if __name__ == '__main__':
             client.store_experience(
                 states, actions, rewards, next_states, episode_statuses)
 
+            if client.training_status():
+                pass
+
 
 
 

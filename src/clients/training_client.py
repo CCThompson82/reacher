@@ -70,3 +70,6 @@ class ModelClient(object):
         self.model.store_experience(states, actions, rewards, next_states,
                                     episode_statuses)
 
+    def training_status(self):
+        return self.model.check_training_status()
+
