@@ -31,9 +31,9 @@ class ModelClient(object):
                                      env_config=env_config)
 
         # TODO: turn this into an object
-        self.state = {'step_counts': np.zeros([env_config['nb_agents']]),
-                      'episode_counts': np.zeros([env_config['nb_agents']]),
-                      'episode_scores': np.zeros([env_config['nb_agents']])}
+        self.metrics = {'step_counts': np.zeros([env_config['nb_agents']]),
+                        'episode_counts': np.zeros([env_config['nb_agents']]),
+                        'episode_scores': np.zeros([env_config['nb_agents']])}
 
     @staticmethod
     def load_model(model_config, hyperparams_config, env_config):
@@ -48,7 +48,7 @@ class ModelClient(object):
         return model
 
     def training_finished(self):
-        return self.model.terminate_training_status(**self.state)
+        return self.model.terminate_training_status(**self.metrics)
 
     def terminate_episode(self, max_reached_statuses, local_done_statuses):
         return self.model.terminate_episode_status(
@@ -56,4 +56,7 @@ class ModelClient(object):
 
     @property
     def progress_bar(self):
-        return self.model.progress_bar(**self.state)
+        return self.model.progress_bar(**self.metrics)
+
+    def get_next_actions(self, states):
+        return self.model.get_next_actions(states=states)
