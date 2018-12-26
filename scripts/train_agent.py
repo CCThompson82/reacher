@@ -18,7 +18,7 @@ from unityagents import UnityEnvironment
 WORK_DIR = os.environ['ROOT_DIR']
 sys.path.append(WORK_DIR)
 
-from src.clients.client_model import ModelClient
+from src.clients.training_client import ModelClient
 
 UNITY_ENV_PATH = os.environ['UNITY_ENV_PATH']
 
@@ -34,3 +34,4 @@ if __name__ == '__main__':
                   'nb_agents': env.reset(train_mode=False)[
                       env.brain_names[0]].vector_observations.shape[0]}
 
+    client = ModelClient(env_config=env_config)
