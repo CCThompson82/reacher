@@ -1,5 +1,5 @@
 {
-  "model_name": "REINFORCE",
+  "model_name": "VanillaPolicyGradAscent",
   "experiment_id": "exp_0",
   "overwrite_experiment": true,
   "mode": "train"

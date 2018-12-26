@@ -59,4 +59,8 @@ class ModelClient(object):
         return self.model.progress_bar(**self.metrics)
 
     def get_next_actions(self, states):
-        return self.model.get_next_actions(states=states)
+        actions = self.model.get_next_actions(states=states)
+
+        if np.any(np.fabs(actions) > 1.0):
+            raise ValueError('Continuous actions cannot exceed absolute of 1')
+        return actions
