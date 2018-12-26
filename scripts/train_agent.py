@@ -65,7 +65,9 @@ if __name__ == '__main__':
                 states, actions, rewards, next_states, episode_statuses)
 
             if client.training_status():
-                pass
+                client.train_model()
+
+
 
 
 

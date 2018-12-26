@@ -73,3 +73,6 @@ class ModelClient(object):
     def training_status(self):
         return self.model.check_training_status()
 
+    def train_model(self):
+        self.model.execute_training_step()
+
