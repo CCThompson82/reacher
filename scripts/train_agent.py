@@ -35,3 +35,11 @@ if __name__ == '__main__':
                       env.brain_names[0]].vector_observations.shape[0]}
 
     client = ModelClient(env_config=env_config)
+
+    # build buffer with by running episodes
+    pbar = tqdm(total=client.model.hyperparams['max_episodes'])
+
+    while not client.training_finished():
+        pbar.set_postfix(
+            ordered_dict=client.progress_bar)
+        pbar.update()

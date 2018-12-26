@@ -1,6 +1,6 @@
 {
-  "model_name": "test_model",
-  "experiment_id": "test_experiment",
+  "model_name": "REINFORCE",
+  "experiment_id": "exp_0",
   "overwrite_experiment": true,
   "mode": "train"
 }

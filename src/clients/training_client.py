@@ -9,6 +9,7 @@ import sys
 import json
 from pydoc import locate
 import numpy as np
+from collections import OrderedDict
 
 WORK_DIR = os.environ['ROOT_DIR']
 sys.path.append(WORK_DIR)
@@ -30,9 +31,9 @@ class ModelClient(object):
                                      env_config=env_config)
 
         # TODO: turn this into an object
-        self.state = {'step_count': np.zeros([env_config['nb_agents']]),
-                      'episode_count': np.zeros([env_config['nb_agents']]),
-                      'episode_score': np.zeros([env_config['nb_agents']])}
+        self.state = {'step_counts': np.zeros([env_config['nb_agents']]),
+                      'episode_counts': np.zeros([env_config['nb_agents']]),
+                      'episode_scores': np.zeros([env_config['nb_agents']])}
 
     @staticmethod
     def load_model(model_config, hyperparams_config, env_config):
@@ -45,3 +46,11 @@ class ModelClient(object):
                       hyperparam_config=hyperparams_config,
                       env_config=env_config)
         return model
+
+    def training_finished(self):
+        return self.model.terminate_training_status(
+            np.mean(self.state['episode_counts']))
+
+    @property
+    def progress_bar(self):
+        return self.model.progress_bar(**self.state)
