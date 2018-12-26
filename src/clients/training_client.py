@@ -81,8 +81,16 @@ class ModelClient(object):
         self.metrics['episode_scores'] += rewards
 
     def record_episode_scores(self):
-        self.metrics['episode_counts'] += 1
-        #TODO: Write episode scores to disk
+        try:
+            arr = np.load(self.model.dir_util.results_filename)
+            arr = np.concatenate([arr, np.array([self.metrics['episode_scores']])], axis=0)
+            print(arr.shape)
+        except FileNotFoundError:
+            arr = np.array([self.metrics['episode_scores']])
 
-        # reset episode score for next episode
+        np.save(self.model.dir_util.results_filename, arr)
+        self.reset_episode()
+
+    def reset_episode(self):
         self.metrics['episode_scores'][:] = 0
+        self.metrics['episode_counts'] += 1
