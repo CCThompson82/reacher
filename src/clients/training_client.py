@@ -12,7 +12,7 @@ import numpy as np
 
 WORK_DIR = os.environ['ROOT_DIR']
 sys.path.append(WORK_DIR)
-MODEL_CONFIG_PATH = os.path.join(WORK_DIR, 'config', 'model.json')
+MODEL_CONFIG_PATH = os.path.join(WORK_DIR, 'config', 'train.json')
 HYPERPARAMS_CONFIG_PATH = os.path.join(WORK_DIR, 'config', 'hyperparams.json')
 
 
