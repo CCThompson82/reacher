@@ -55,7 +55,6 @@ if __name__ == '__main__':
             actions = client.get_next_actions(states=states)
 
             env_info = env.step(actions)[brain.brain_name]
-            client.metrics['step_counts'] += 1
 
             rewards = env_info.rewards
             next_states = env_info.vector_observations
@@ -67,12 +66,15 @@ if __name__ == '__main__':
             if client.training_status():
                 client.train_model()
 
+            client.update_metrics(rewards=rewards)
+
+        client.record_episode_scores()
+
+        # if client.checkpoint_step(model_config['checkpoint_frequency']):
+        #     client.checkpoint_model()
 
 
 
 
-
-        print('Finished episode')
-        break
 
 

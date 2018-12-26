@@ -76,3 +76,13 @@ class ModelClient(object):
     def train_model(self):
         self.model.execute_training_step()
 
+    def update_metrics(self, rewards):
+        self.metrics['step_counts'] += 1
+        self.metrics['episode_scores'] += rewards
+
+    def record_episode_scores(self):
+        self.metrics['episode_counts'] += 1
+        #TODO: Write episode scores to disk
+
+        # reset episode score for next episode
+        self.metrics['episode_scores'][:] = 0
