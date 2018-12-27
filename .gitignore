@@ -8,9 +8,6 @@
 .idea
 *.iml
 
-# model
-model
-
 # data
 data
 

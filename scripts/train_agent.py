@@ -48,6 +48,10 @@ if __name__ == '__main__':
         env_info = env.reset(train_mode=True)[brain.brain_name]
         states = env_info.vector_observations
 
+        for param in client.model.network.parameters():
+            print(param.data)
+            break
+
         while not client.terminate_episode(
                 max_reached_statuses=env_info.max_reached,
                 local_done_statuses=env_info.local_done):
