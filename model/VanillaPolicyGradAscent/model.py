@@ -76,12 +76,10 @@ class Model(BaseModel):
         Returns:
 
         """
-        rewards = np.random.randn(20, 1)
-
-        R = torch.Tensor(-rewards, requires_grad=True).mean()
-
+        states = torch.from_numpy(np.random.randn(20, 33)).float()
+        actions = self.network.network.forward(input=states)
         self.optimizer.zero_grad()
-        R.backward()
+        actions.backward(torch.from_numpy(np.full([20, 4], np.random.randn())).float())
         self.optimizer.step()
 
 
