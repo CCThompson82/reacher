@@ -1,1 +1,4 @@
-{"max_episodes": 3}
+{
+  "max_episodes": 3,
+  "random_seed": 7
+}
