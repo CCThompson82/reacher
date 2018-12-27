@@ -9,6 +9,7 @@ import sys
 import json
 from pydoc import locate
 import numpy as np
+from collections import OrderedDict
 
 WORK_DIR = os.environ['ROOT_DIR']
 sys.path.append(WORK_DIR)
@@ -30,9 +31,9 @@ class ModelClient(object):
                                      env_config=env_config)
 
         # TODO: turn this into an object
-        self.state = {'step_count': np.zeros([env_config['nb_agents']]),
-                      'episode_count': np.zeros([env_config['nb_agents']]),
-                      'episode_score': np.zeros([env_config['nb_agents']])}
+        self.metrics = {'step_counts': np.zeros([env_config['nb_agents']]),
+                        'episode_counts': np.zeros([env_config['nb_agents']]),
+                        'episode_scores': np.zeros([env_config['nb_agents']])}
 
     @staticmethod
     def load_model(model_config, hyperparams_config, env_config):
@@ -45,3 +46,50 @@ class ModelClient(object):
                       hyperparam_config=hyperparams_config,
                       env_config=env_config)
         return model
+
+    def training_finished(self):
+        return self.model.terminate_training_status(**self.metrics)
+
+    def terminate_episode(self, max_reached_statuses, local_done_statuses):
+        return self.model.terminate_episode_status(
+            max_reached_statuses, local_done_statuses)
+
+    @property
+    def progress_bar(self):
+        return self.model.progress_bar(**self.metrics)
+
+    def get_next_actions(self, states):
+        actions = self.model.get_next_actions(states=states)
+
+        if np.any(np.fabs(actions) > 1.0):
+            raise ValueError('Continuous actions cannot exceed absolute of 1')
+        return actions
+
+    def store_experience(self, states, actions, rewards, next_states,
+                         episode_statuses):
+        self.model.store_experience(states, actions, rewards, next_states,
+                                    episode_statuses)
+
+    def training_status(self):
+        return self.model.check_training_status()
+
+    def train_model(self):
+        self.model.execute_training_step()
+
+    def update_metrics(self, rewards):
+        self.metrics['step_counts'] += 1
+        self.metrics['episode_scores'] += rewards
+
+    def record_episode_scores(self):
+        try:
+            arr = np.load(self.model.dir_util.results_filename)
+            arr = np.concatenate([arr, np.array([self.metrics['episode_scores']])], axis=0)
+        except FileNotFoundError:
+            arr = np.array([self.metrics['episode_scores']])
+
+        np.save(self.model.dir_util.results_filename, arr)
+        self.reset_episode()
+
+    def reset_episode(self):
+        self.metrics['episode_scores'][:] = 0
+        self.metrics['episode_counts'] += 1

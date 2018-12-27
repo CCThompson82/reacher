@@ -35,3 +35,50 @@ if __name__ == '__main__':
                       env.brain_names[0]].vector_observations.shape[0]}
 
     client = ModelClient(env_config=env_config)
+
+    # build buffer with by running episodes
+    pbar = tqdm(total=client.model.hyperparams['max_episodes'])
+
+    while not client.training_finished():
+        pbar.set_postfix(
+            ordered_dict=client.progress_bar)
+        pbar.update()
+
+        # reset for new episodes
+        env_info = env.reset(train_mode=True)[brain.brain_name]
+        states = env_info.vector_observations
+
+        for param in client.model.network.parameters():
+            print(param.data)
+            break
+
+        while not client.terminate_episode(
+                max_reached_statuses=env_info.max_reached,
+                local_done_statuses=env_info.local_done):
+
+            actions = client.get_next_actions(states=states)
+
+            env_info = env.step(actions)[brain.brain_name]
+
+            rewards = env_info.rewards
+            next_states = env_info.vector_observations
+            episode_statuses = env_info.local_done
+
+            client.store_experience(
+                states, actions, rewards, next_states, episode_statuses)
+
+            if client.training_status():
+                client.train_model()
+
+            client.update_metrics(rewards=rewards)
+
+        client.record_episode_scores()
+
+        # if client.checkpoint_step(model_config['checkpoint_frequency']):
+        #     client.checkpoint_model()
+
+
+
+
+
+

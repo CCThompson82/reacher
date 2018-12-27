@@ -23,13 +23,15 @@ class BaseModel(object):
             hyperparam_config:
             env_config:
         """
-        self.model_config = model_config
-        self.hyperparams = hyperparam_config
-        self.env_config = env_config
-
         # directory management
         self.dir_util = FileManager(model_config=model_config)
         self.dir_util.dump_experiment_info(hyperparams=hyperparam_config)
+
+        # attr
+        self.model_config = model_config
+        self.hyperparams = hyperparam_config
+        self.env_config = env_config
+        self.params = json.load(open(self.dir_util.exp_params_filename, 'r'))
 
 
 class FileManager(object):
@@ -42,6 +44,9 @@ class FileManager(object):
         # store paths and filenames
         self.model_dir = os.path.join(
             ROOT_DIR, 'data', self.model_name, self.experiment_id)
+        self.exp_params_filename = os.path.join(
+            ROOT_DIR, 'model', self.model_name, model_config['experiment_id'],
+            "params.json")
         self.results_dir = os.path.join(self.model_dir, 'results')
         self.results_filename = os.path.join(self.results_dir,
                                              'episode_scores.npy')
