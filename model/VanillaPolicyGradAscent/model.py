@@ -79,7 +79,7 @@ class Model(BaseModel):
         states = torch.from_numpy(np.random.randn(20, 33)).float()
         actions = self.network.network.forward(input=states)
         self.optimizer.zero_grad()
-        actions.backward(torch.randn(20, 4))
+        actions.backward(torch.from_numpy(np.full([20, 4], np.random.randn())).float())
         self.optimizer.step()
 
 
