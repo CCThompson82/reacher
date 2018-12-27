@@ -23,10 +23,24 @@ class Model(BaseModel):
                            nb_actions=env_config['nb_actions'],
                            params=self.params,
                            seed=self.hyperparams['random_seed'])
+        self.actor_target = Actor(nb_features=env_config['nb_observations'],
+                                  nb_actions=env_config['nb_actions'],
+                                  params=self.params,
+                                  seed=self.hyperparams['random_seed'])
+
         self.critic = Critic(nb_features=env_config['nb_observations'],
                              nb_actions=env_config['nb_actions'],
                              params=self.params,
                              seed=self.hyperparams['random_seed'])
+        self.critic_target = Critic(nb_features=env_config['nb_observations'],
+                                    nb_actions=env_config['nb_actions'],
+                                    params=self.params,
+                                    seed=self.hyperparams['random_seed'])
+
+        self.soft_update(
+            src_model=self.actor, dst_model=self.actor_target, tau=1.0)
+        self.soft_update(
+            src_model=self.critic, dst_model=self.critic_target, tau=1.0)
 
 
 
@@ -106,6 +120,13 @@ class Model(BaseModel):
         except FileNotFoundError:
             return 0
         return np.round(np.max(arr), 3)
+
+    @staticmethod
+    def soft_update(src_model, dst_model, tau):
+        for dst_param, src_param in zip(dst_model.parameters(),
+                                        src_model.parameters()):
+            updated_param = tau*src_param.data + (1.0-tau)*dst_param.data
+            dst_param.data.copy_(updated_param)
 
 
 # class ExperienceBuffer(object):
