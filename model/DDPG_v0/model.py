@@ -9,6 +9,7 @@ from src.buffers.experience_buffer import ExperienceBuffer
 from collections import OrderedDict
 import torch
 nn = torch.nn
+fn = nn.functional
 
 WORK_DIR = os.environ['ROOT_DIR']
 sys.path.append(WORK_DIR)
@@ -49,11 +50,12 @@ class Model(BaseModel):
             batch_size=self.hyperparams['batch_size'],
             seed=self.hyperparams['random_seed'])
 
-
-
-        # self.optimizer = torch.optim.Adam(
-        #     params=self.network.network.parameters(),
-        #     lr=self.hyperparams['init_learning_rate'])
+        self.critic_optimizer = torch.optim.Adam(
+            params=self.critic.parameters(),
+            lr=self.hyperparams['init_learning_rate'])
+        self.actor_optimizer = torch.optim.Adam(
+            params=self.critic.parameters(),
+            lr=self.hyperparams['init_learning_rate'])
 
         # self.memory = ExperienceBuffer()
 
@@ -120,15 +122,30 @@ class Model(BaseModel):
         rewards_tensor = torch.from_numpy(rewards).float()
 
         # train the critic
-        Q_expected = self.critic.forward(states_tensor, actions_tensor)
 
         Q_target = rewards_tensor + (
                 self.hyperparams['gamma'] * self.critic_target.forward(
-            next_states_tensor, self.actor_target.forward(next_states_tensor)))
+                    next_states_tensor, self.actor_target.forward(
+                        next_states_tensor)))
 
+        self.critic_optimizer.zero_grad()
+        Q_expected = self.critic.forward(states_tensor, actions_tensor)
+        critic_loss = fn.mse_loss(Q_expected, Q_target)
+        critic_loss.backward()
+        self.critic_optimizer.step()
 
         # train the actor
+        actions_pred = self.actor.forward(states_tensor)
+        actor_loss = -self.critic.forward(states_tensor, actions_pred).mean()
 
+        self.actor_optimizer.zero_grad()
+        actor_loss.backward()
+        self.actor_optimizer.step()
+
+        self.soft_update(src_model=self.critic, dst_model=self.critic_target,
+                         tau=self.hyperparams['tau'])
+        self.soft_update(src_model=self.actor, dst_model=self.actor_target,
+                         tau=self.hyperparams['tau'])
 
 
     @property
