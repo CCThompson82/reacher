@@ -2,5 +2,6 @@
   "max_episodes": 3,
   "random_seed": 7,
   "init_learning_rate": 1e-1,
-  "batch_size": 64
+  "batch_size": 64,
+  "gamma": 0.99
 }

@@ -114,8 +114,17 @@ class Model(BaseModel):
 
         """
         states, actions, rewards, next_states, dones = self.memory.sample()
+        states_tensor = torch.from_numpy(states).float()
+        actions_tensor = torch.from_numpy(actions).float()
+        next_states_tensor = torch.from_numpy(next_states).float()
+        rewards_tensor = torch.from_numpy(rewards).float()
 
         # train the critic
+        Q_expected = self.critic.forward(states_tensor, actions_tensor)
+
+        Q_target = rewards_tensor + (
+                self.hyperparams['gamma'] * self.critic_target.forward(
+            next_states_tensor, self.actor_target.forward(next_states_tensor)))
 
 
         # train the actor
