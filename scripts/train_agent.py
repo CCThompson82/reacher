@@ -62,11 +62,10 @@ if __name__ == '__main__':
 
             client.store_experience(
                 states, actions, rewards, next_states, episode_statuses)
+            client.update_metrics(rewards=rewards)
 
             if client.training_status():
                 client.train_model()
-
-            client.update_metrics(rewards=rewards)
 
         client.record_episode_scores()
 

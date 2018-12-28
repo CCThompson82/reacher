@@ -5,6 +5,7 @@ import numpy as np
 from src.base_models.base_model import BaseModel
 from src.base_networks.actor import Network as Actor
 from src.base_networks.critic import Network as Critic
+from src.buffers.experience_buffer import ExperienceBuffer
 from collections import OrderedDict
 import torch
 nn = torch.nn
@@ -42,6 +43,12 @@ class Model(BaseModel):
         self.soft_update(
             src_model=self.critic, dst_model=self.critic_target, tau=1.0)
 
+        self.memory = ExperienceBuffer(
+            action_size=env_config['nb_actions'],
+            max_buffer_size=self.params['experience_buffer']['max_tuples'],
+            batch_size=self.hyperparams['batch_size'],
+            seed=self.hyperparams['random_seed'])
+
 
 
         # self.optimizer = torch.optim.Adam(
@@ -65,6 +72,7 @@ class Model(BaseModel):
 
     def progress_bar(self, step_counts, **kwargs):
         return OrderedDict([('step_count', int(np.mean(step_counts))),
+                            ('buffer_size', self.buffer_size),
                             ('max episode', self.best_episode_score),
                             ('mean episode', self.mean_episode_score)])
 
@@ -78,7 +86,7 @@ class Model(BaseModel):
 
     def store_experience(self, states, actions, rewards, next_states,
                          episode_statuses):
-        pass
+        self.memory.add(state=states, action=actions, reward=rewards, next_state=next_states, done=episode_statuses)
 
     def check_training_status(self):
         """
@@ -88,8 +96,9 @@ class Model(BaseModel):
         Returns:
             bool (True if training step should be run)
         """
-
-        return True
+        status = (self.params['experience_buffer']['min_for_training'] <=
+                  self.memory.__len__())
+        return status
 
     def execute_training_step(self):
         """
@@ -99,7 +108,6 @@ class Model(BaseModel):
 
         """
         pass
-
 
     @property
     def mean_episode_score(self):
@@ -121,6 +129,10 @@ class Model(BaseModel):
             return 0
         return np.round(np.max(arr), 3)
 
+    @property
+    def buffer_size(self):
+        return self.memory.__len__()
+
     @staticmethod
     def soft_update(src_model, dst_model, tau):
         for dst_param, src_param in zip(dst_model.parameters(),
@@ -128,9 +140,3 @@ class Model(BaseModel):
             updated_param = tau*src_param.data + (1.0-tau)*dst_param.data
             dst_param.data.copy_(updated_param)
 
-
-# class ExperienceBuffer(object):
-#     """Buffer to store experience tuples."""
-#
-#     def __init__(self, nb_agents, nb_state_features, nb_actions):
-#         self.states = np.empty()
