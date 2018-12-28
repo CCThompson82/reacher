@@ -86,7 +86,13 @@ class Model(BaseModel):
 
     def store_experience(self, states, actions, rewards, next_states,
                          episode_statuses):
-        self.memory.add(state=states, action=actions, reward=rewards, next_state=next_states, done=episode_statuses)
+
+        for idx in range(self.env_config['nb_agents']):
+            self.memory.add(state=states[idx],
+                            action=actions[idx],
+                            reward=rewards[idx],
+                            next_state=next_states[idx],
+                            done=episode_statuses[idx])
 
     def check_training_status(self):
         """
@@ -107,7 +113,14 @@ class Model(BaseModel):
         Returns:
 
         """
-        pass
+        states, actions, rewards, next_states, dones = self.memory.sample()
+
+        # train the critic
+
+
+        # train the actor
+
+
 
     @property
     def mean_episode_score(self):
