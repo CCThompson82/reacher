@@ -2,9 +2,10 @@
   "max_episodes": 1000,
   "random_seed": 7,
   "actor_init_learning_rate": 1e-4,
-  "critic_init_learning_rate": 1e-2,
+  "critic_init_learning_rate": 1e-3,
   "batch_size": 128,
-  "gamma": 0.90,
+  "gamma": 0.95,
   "tau": 1e-3,
-  "checkpoint_freq": 20
+  "checkpoint_freq": 20,
+  "epsilon_root_factor": 4
 }

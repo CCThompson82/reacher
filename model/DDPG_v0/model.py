@@ -57,12 +57,7 @@ class Model(BaseModel):
             params=self.critic.parameters(),
             lr=self.hyperparams['actor_init_learning_rate'])
 
-
-        #debug attr
-        self.Q_target_mean = 0
-        self.Q_expected_mean = 0
-        self.mean_step_rewards = 0
-        self.mean_future_return = 0
+        # progress bar attr
         self.critic_loss_ = 0
         self.actor_loss_ = 0
 
@@ -79,26 +74,25 @@ class Model(BaseModel):
         # environments.
         return np.any([max_reached_status, local_done_status])
 
-    def progress_bar(self, step_counts, **kwargs):
+    def progress_bar(self, step_counts, episode_counts, **kwargs):
         return OrderedDict([('step_count', int(np.mean(step_counts))),
-                            # ('buffer_size', '{}'.format(self.buffer_size)),
-                            # ('step reward', self.mean_step_rewards),
+                            ('episode_count', int(np.mean(episode_counts))),
+                            ('epsilon', self.epsilon(np.mean(episode_counts))),
+                            ('buffer_size', '{}'.format(self.buffer_size)),
                             ('critic loss', np.round(self.critic_loss_, 4)),
                             ('actor_loss', np.round(self.actor_loss_, 4)),
-                            # ('mean Qtarget', self.Q_target_mean),
-                            # ('mean_Qexpected', self.Q_expected_mean),
-                            # ('max episode', self.best_episode_score),
-                            # ('min_episode', self.worst_episode_score),
                             ('mean episode', self.mean_episode_score)])
 
-    def get_next_actions(self, states):
+    def get_next_actions(self, states, episode):
         state_tensor = torch.from_numpy(states).float()
         self.actor.eval()
         actions = self.actor.network.forward(state_tensor).data.numpy()
         self.actor.train()
-        # TODO: add noise?
 
-        return actions
+        noise = np.random.randn(*actions.shape)
+        noise_factor = self.epsilon(episode)
+        actions += noise * noise_factor
+        return np.clip(actions, -1, 1)
 
     def store_experience(self, states, actions, rewards, next_states,
                          episode_statuses):
@@ -215,3 +209,11 @@ class Model(BaseModel):
         checkpoint_filename = os.path.join(
             self.dir_util.checkpoint_dir, 'critic_ckpt_{}.pth'.format(episode_count))
         torch.save(self.critic.state_dict(), checkpoint_filename)
+
+    def epsilon(self, episode):
+        epf = self.hyperparams['epsilon_root_factor']
+        if episode == 0:
+            epsilon = 1.0
+        else:
+            epsilon = (1.0/episode)**(1.0/epf)
+        return np.round(epsilon, 3)
