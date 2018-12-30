@@ -129,19 +129,14 @@ class Model(BaseModel):
         next_states_tensor = torch.from_numpy(next_states).float()
         rewards_tensor = torch.from_numpy(rewards).float()
 
-        self.mean_step_rewards = np.mean(rewards)
         # train the critic
-
         future_return = self.critic_target.forward(
             next_states_tensor, self.actor_target.forward(
                 next_states_tensor))
-        self.mean_future_return = future_return.data.numpy().mean()
         Q_target = rewards_tensor + (
                 self.hyperparams['gamma'] * future_return)
-        self.Q_target_mean = Q_target.data.numpy().mean()
 
         Q_expected = self.critic.forward(states_tensor, actions_tensor)
-        self.Q_expected_mean = Q_expected.data.numpy().mean()
 
         critic_loss = fn.mse_loss(Q_expected, Q_target)
 
@@ -151,8 +146,8 @@ class Model(BaseModel):
         self.critic_optimizer.step()
 
         # train the actor
-        actions_pred = self.actor.forward(states_tensor)
-        actor_loss = -self.critic.forward(states_tensor, actions_pred).mean()
+        # actions_pred = self.actor.forward(states_tensor)
+        actor_loss = -self.critic.forward(states_tensor, actions_tensor).mean()
         self.actor_loss_ = actor_loss.detach().numpy()
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
