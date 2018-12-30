@@ -38,4 +38,5 @@ class Network(nn.Module):
         x = fn.relu(x)
         x = self.fc2_with_concat(torch.cat((x, actions), dim=1))
         x = fn.relu(x)
-        return self.fc3(x)
+        x = self.fc3(x)
+        return fn.softplus(x)

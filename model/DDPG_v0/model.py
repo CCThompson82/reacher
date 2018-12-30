@@ -52,12 +52,19 @@ class Model(BaseModel):
 
         self.critic_optimizer = torch.optim.Adam(
             params=self.critic.parameters(),
-            lr=self.hyperparams['init_learning_rate'])
+            lr=self.hyperparams['critic_init_learning_rate'])
         self.actor_optimizer = torch.optim.Adam(
             params=self.critic.parameters(),
-            lr=self.hyperparams['init_learning_rate'])
+            lr=self.hyperparams['actor_init_learning_rate'])
 
-        # self.memory = ExperienceBuffer()
+
+        #debug attr
+        self.Q_target_mean = 0
+        self.Q_expected_mean = 0
+        self.mean_step_rewards = 0
+        self.mean_future_return = 0
+        self.critic_loss_ = 0
+        self.actor_loss_ = 0
 
     def terminate_training_status(self, episode_counts, **kwargs):
         return np.mean(episode_counts) >= self.hyperparams['max_episodes']
@@ -74,14 +81,21 @@ class Model(BaseModel):
 
     def progress_bar(self, step_counts, **kwargs):
         return OrderedDict([('step_count', int(np.mean(step_counts))),
-                            ('buffer_size', self.buffer_size),
-                            ('max episode', self.best_episode_score),
+                            # ('buffer_size', '{}'.format(self.buffer_size)),
+                            # ('step reward', self.mean_step_rewards),
+                            ('critic loss', np.round(self.critic_loss_, 4)),
+                            ('actor_loss', np.round(self.actor_loss_, 4)),
+                            # ('mean Qtarget', self.Q_target_mean),
+                            # ('mean_Qexpected', self.Q_expected_mean),
+                            # ('max episode', self.best_episode_score),
+                            # ('min_episode', self.worst_episode_score),
                             ('mean episode', self.mean_episode_score)])
 
     def get_next_actions(self, states):
         state_tensor = torch.from_numpy(states).float()
+        self.actor.eval()
         actions = self.actor.network.forward(state_tensor).data.numpy()
-
+        self.actor.train()
         # TODO: add noise?
 
         return actions
@@ -121,23 +135,31 @@ class Model(BaseModel):
         next_states_tensor = torch.from_numpy(next_states).float()
         rewards_tensor = torch.from_numpy(rewards).float()
 
+        self.mean_step_rewards = np.mean(rewards)
         # train the critic
 
+        future_return = self.critic_target.forward(
+            next_states_tensor, self.actor_target.forward(
+                next_states_tensor))
+        self.mean_future_return = future_return.data.numpy().mean()
         Q_target = rewards_tensor + (
-                self.hyperparams['gamma'] * self.critic_target.forward(
-                    next_states_tensor, self.actor_target.forward(
-                        next_states_tensor)))
+                self.hyperparams['gamma'] * future_return)
+        self.Q_target_mean = Q_target.data.numpy().mean()
 
-        self.critic_optimizer.zero_grad()
         Q_expected = self.critic.forward(states_tensor, actions_tensor)
+        self.Q_expected_mean = Q_expected.data.numpy().mean()
+
         critic_loss = fn.mse_loss(Q_expected, Q_target)
+
+        self.critic_loss_ = critic_loss.data.numpy()
+        self.critic_optimizer.zero_grad()
         critic_loss.backward()
         self.critic_optimizer.step()
 
         # train the actor
         actions_pred = self.actor.forward(states_tensor)
         actor_loss = -self.critic.forward(states_tensor, actions_pred).mean()
-
+        self.actor_loss_ = actor_loss.detach().numpy()
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
         self.actor_optimizer.step()
@@ -146,7 +168,6 @@ class Model(BaseModel):
                          tau=self.hyperparams['tau'])
         self.soft_update(src_model=self.actor, dst_model=self.actor_target,
                          tau=self.hyperparams['tau'])
-
 
     @property
     def mean_episode_score(self):
@@ -167,6 +188,14 @@ class Model(BaseModel):
         except FileNotFoundError:
             return 0
         return np.round(np.max(arr), 3)
+
+    @property
+    def worst_episode_score(self):
+        try:
+            arr = np.load(self.dir_util.results_filename)
+        except FileNotFoundError:
+            return 0
+        return np.round(np.min(arr), 3)
 
     @property
     def buffer_size(self):

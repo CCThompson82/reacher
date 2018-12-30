@@ -37,12 +37,9 @@ if __name__ == '__main__':
     client = ModelClient(env_config=env_config)
 
     # build buffer with by running episodes
-    pbar = tqdm(total=client.model.hyperparams['max_episodes'])
+    pbar = tqdm(total=client.model.hyperparams['max_episodes']*1001)
 
     while not client.training_finished():
-        pbar.set_postfix(
-            ordered_dict=client.progress_bar)
-        pbar.update()
 
         # reset for new episodes
         env_info = env.reset(train_mode=True)[brain.brain_name]
@@ -51,6 +48,10 @@ if __name__ == '__main__':
         while not client.terminate_episode(
                 max_reached_statuses=env_info.max_reached,
                 local_done_statuses=env_info.local_done):
+
+            pbar.set_postfix(
+                ordered_dict=client.progress_bar)
+            pbar.update()
 
             actions = client.get_next_actions(states=states)
 

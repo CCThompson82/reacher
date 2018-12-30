@@ -1,8 +1,9 @@
 {
-  "max_episodes": 3,
+  "max_episodes": 1000,
   "random_seed": 7,
-  "init_learning_rate": 1e-1,
-  "batch_size": 64,
-  "gamma": 0.99,
+  "actor_init_learning_rate": 1e-4,
+  "critic_init_learning_rate": 1e-2,
+  "batch_size": 128,
+  "gamma": 0.80,
   "tau": 1e-3
 }

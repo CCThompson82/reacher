@@ -25,7 +25,7 @@ class Network(nn.Module):
                 ('fc3', nn.Linear(in_features=params['network']['fc2'],
                                   out_features=nb_actions,
                                   bias=True)),
-                ('tanh_out', nn.Tanh())]))
+                ('tanh_out', nn.Hardtanh())]))
 
     def forward(self, state):
         """
