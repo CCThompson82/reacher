@@ -208,3 +208,10 @@ class Model(BaseModel):
             updated_param = tau*src_param.data + (1.0-tau)*dst_param.data
             dst_param.data.copy_(updated_param)
 
+    def checkpoint_model(self, episode_count):
+        checkpoint_filename = os.path.join(
+            self.dir_util.checkpoint_dir, 'actor_ckpt_{}.pth'.format(episode_count))
+        torch.save(self.actor.network.state_dict(), checkpoint_filename)
+        checkpoint_filename = os.path.join(
+            self.dir_util.checkpoint_dir, 'critic_ckpt_{}.pth'.format(episode_count))
+        torch.save(self.critic.state_dict(), checkpoint_filename)

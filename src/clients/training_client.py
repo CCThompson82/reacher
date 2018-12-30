@@ -93,3 +93,11 @@ class ModelClient(object):
     def reset_episode(self):
         self.metrics['episode_scores'][:] = 0
         self.metrics['episode_counts'] += 1
+
+    def checkpoint_step(self):
+        return (self.metrics['episode_counts'][0] %
+                self.model.hyperparams['checkpoint_freq'] == 0)
+
+    def create_checkpoint(self):
+        self.model.checkpoint_model(
+            episode_count=self.metrics['episode_counts'][0])

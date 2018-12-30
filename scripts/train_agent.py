@@ -70,8 +70,8 @@ if __name__ == '__main__':
 
         client.record_episode_scores()
 
-        # if client.checkpoint_step(model_config['checkpoint_frequency']):
-        #     client.checkpoint_model()
+        if client.checkpoint_step():
+            client.create_checkpoint()
 
 
 
