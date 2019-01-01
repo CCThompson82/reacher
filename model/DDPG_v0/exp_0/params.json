@@ -4,7 +4,7 @@
     "fc2": 32
   },
   "experience_buffer": {
-    "max_tuples": 100000,
+    "max_tuples": 10000,
     "min_for_training": 500
   }
 }

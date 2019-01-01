@@ -35,8 +35,8 @@ class Network(nn.Module):
             target q_values for each action available
         """
         x = self.fc1(states.to(self.device))
-        x = fn.relu(x)
+        # x = fn.relu(x)
         x = self.fc2_with_concat(torch.cat((x, actions.to(self.device)), dim=1))
-        x = fn.relu(x)
+        # x = fn.relu(x)
         x = self.fc3(x)
         return fn.softplus(x)
