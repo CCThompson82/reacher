@@ -3,6 +3,7 @@
   "random_seed": 7,
   "actor_init_learning_rate": 5e-4,
   "critic_init_learning_rate": 1e-3,
+  "training_steps": 10,
   "batch_size": 128,
   "gamma": 0.99,
   "tau": 1e-3,

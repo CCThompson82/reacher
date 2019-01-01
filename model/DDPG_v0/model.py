@@ -118,6 +118,14 @@ class Model(BaseModel):
         status = (self.params['experience_buffer']['min_for_training'] <=
                   self.memory.__len__())
         return status
+    
+    def train_model(self):
+        """
+        Performs a series of training steps
+        """
+        training_iterations = self.hyperparams.get('training_steps', 1)
+        for step in range(training_iterations):
+            self.execute_training_step()
 
     def execute_training_step(self):
         """

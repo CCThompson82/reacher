@@ -75,7 +75,8 @@ class ModelClient(object):
         return self.model.check_training_status()
 
     def train_model(self):
-        self.model.execute_training_step()
+        self.model.train_model()
+        # self.model.execute_training_step()
 
     def update_metrics(self, rewards):
         self.metrics['step_counts'] += 1
