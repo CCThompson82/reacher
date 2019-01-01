@@ -54,7 +54,7 @@ class Model(BaseModel):
             params=self.critic.parameters(),
             lr=self.hyperparams['critic_init_learning_rate'])
         self.actor_optimizer = torch.optim.Adam(
-            params=self.critic.parameters(),
+            params=self.actor.parameters(),
             lr=self.hyperparams['actor_init_learning_rate'])
 
         # progress bar attr
@@ -89,9 +89,8 @@ class Model(BaseModel):
         actions = self.actor.network.forward(state_tensor).data.numpy()
         self.actor.train()
 
-        noise = np.random.randn(*actions.shape)
-        noise_factor = self.epsilon(episode)
-        actions += noise * noise_factor
+        if np.random.rand() <= self.epsilon(episode):
+            actions = np.random.randn(*actions.shape)
         return np.clip(actions, -1, 1)
 
     def store_experience(self, states, actions, rewards, next_states,
@@ -148,10 +147,10 @@ class Model(BaseModel):
         # train the actor
         # actions_pred = self.actor.forward(states_tensor)
         actor_loss = -self.critic.forward(states_tensor, actions_tensor).mean()
-        self.actor_loss_ = actor_loss.detach().numpy()
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
         self.actor_optimizer.step()
+        self.actor_loss_ = actor_loss.detach().numpy()
 
         self.soft_update(src_model=self.critic, dst_model=self.critic_target,
                          tau=self.hyperparams['tau'])
