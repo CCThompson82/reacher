@@ -29,6 +29,8 @@ class Model(BaseModel):
                                   nb_actions=env_config['nb_actions'],
                                   params=self.params,
                                   seed=self.hyperparams['random_seed'])
+        self.actor.to(self.actor.device)
+        self.actor_target.to(self.actor_target.device)
 
         self.critic = Critic(nb_features=env_config['nb_observations'],
                              nb_actions=env_config['nb_actions'],
@@ -38,6 +40,8 @@ class Model(BaseModel):
                                     nb_actions=env_config['nb_actions'],
                                     params=self.params,
                                     seed=self.hyperparams['random_seed'])
+        self.critic.to(self.critic.device)
+        self.critic_target.to(self.critic_target.device)
 
         self.soft_update(
             src_model=self.actor, dst_model=self.actor_target, tau=1.0)
@@ -84,13 +88,13 @@ class Model(BaseModel):
                             ('mean episode', self.mean_episode_score)])
 
     def get_next_actions(self, states, episode):
-        state_tensor = torch.from_numpy(states).float()
+        state_tensor = torch.from_numpy(states).float().to(self.actor.device)
         self.actor.eval()
-        actions = self.actor.network.forward(state_tensor).data.numpy()
+        actions = self.actor.network.forward(state_tensor).cpu().data.numpy()
         self.actor.train()
 
         if np.random.rand() <= self.epsilon(episode):
-            actions = np.random.randn(*actions.shape)
+            actions += np.random.randn(*actions.shape) * 0.25  # set sigma
         return np.clip(actions, -1, 1)
 
     def store_experience(self, states, actions, rewards, next_states,
@@ -133,24 +137,33 @@ class Model(BaseModel):
             next_states_tensor, self.actor_target.forward(
                 next_states_tensor))
         Q_target = rewards_tensor + (
-                self.hyperparams['gamma'] * future_return)
-
+                self.hyperparams['gamma'] * future_return.cpu())
+        self.critic.train()
         Q_expected = self.critic.forward(states_tensor, actions_tensor)
+        critic_loss = fn.mse_loss(Q_expected, Q_target.to(self.critic.device))
 
-        critic_loss = fn.mse_loss(Q_expected, Q_target)
-
-        self.critic_loss_ = critic_loss.data.numpy()
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
+        nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
+        # for param in self.critic.parameters():
+        #     print(param.grad.data.sum())
+
         self.critic_optimizer.step()
+
+        self.critic_loss_ = critic_loss.cpu().data.numpy()
+
 
         # train the actor
         # actions_pred = self.actor.forward(states_tensor)
-        actor_loss = -self.critic.forward(states_tensor, actions_tensor).mean()
         self.actor_optimizer.zero_grad()
+        actions_tensor = self.actor.forward(states_tensor)
+        self.critic.eval()
+        actor_loss = -self.critic.forward(states_tensor, actions_tensor).mean()
         actor_loss.backward()
         self.actor_optimizer.step()
-        self.actor_loss_ = actor_loss.detach().numpy()
+        self.actor_loss_ = actor_loss.cpu().detach().numpy()
+
+        self.critic.train()
 
         self.soft_update(src_model=self.critic, dst_model=self.critic_target,
                          tau=self.hyperparams['tau'])
@@ -167,7 +180,7 @@ class Model(BaseModel):
         if len(arr) < 100:
             return np.round(np.mean(arr), 3)
 
-        return np.round(np.mean(arr[-100:]), 3)
+        return np.round(np.mean(arr[-1]), 3)
 
     @property
     def best_episode_score(self):

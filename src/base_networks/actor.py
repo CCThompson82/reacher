@@ -26,6 +26,7 @@ class Network(nn.Module):
                                   out_features=nb_actions,
                                   bias=True)),
                 ('tanh_out', nn.Tanh())]))
+        self.network.to(self.device)
 
     def forward(self, state):
         """
@@ -36,4 +37,4 @@ class Network(nn.Module):
         Returns:
             target q_values for each action available
         """
-        return self.network.forward(state)
+        return self.network.forward(state.to(self.device))

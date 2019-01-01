@@ -40,6 +40,8 @@ if __name__ == '__main__':
     pbar = tqdm(total=client.model.hyperparams['max_episodes']*1001)
 
     while not client.training_finished():
+        # print(next(client.model.actor.parameters()).data[-1])
+        # print(next(client.model.critic.parameters()).data[-1])
 
         # reset for new episodes
         env_info = env.reset(train_mode=True)[brain.brain_name]
