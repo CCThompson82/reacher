@@ -83,8 +83,9 @@ class Model(BaseModel):
                             ('episode_count', int(np.mean(episode_counts))),
                             ('epsilon', self.epsilon(np.mean(episode_counts))),
                             ('buffer_size', '{}'.format(self.buffer_size)),
-                            ('critic loss', np.round(self.critic_loss_, 4)),
-                            ('actor_loss', np.round(self.actor_loss_, 4)),
+                            ('critic loss', '{:5.3f}'.format(
+                                np.round(self.critic_loss_, 4))),
+                            ('actor_loss', '{:5.3f}'.format(self.actor_loss_)),
                             ('mean episode', self.mean_episode_score)])
 
     def get_next_actions(self, states, episode):
