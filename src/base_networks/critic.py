@@ -13,6 +13,7 @@ class Network(nn.Module):
         self.device = torch.device(
             "cuda:0" if torch.cuda.is_available() else "cpu")
 
+        self.bn0 = nn.BatchNorm1d(nb_features)
         self.fc1 = nn.Linear(in_features=nb_features,
                              out_features=params['network']['fc1'],
                              bias=True)
@@ -34,9 +35,10 @@ class Network(nn.Module):
         Returns:
             target q_values for each action available
         """
-        x = self.fc1(states.to(self.device))
-        # x = fn.relu(x)
+        x = self.bn0(states.to(self.device))
+        x = self.fc1(x)
+        x = fn.relu(x)
         x = self.fc2_with_concat(torch.cat((x, actions.to(self.device)), dim=1))
-        # x = fn.relu(x)
+        x = fn.relu(x)
         x = self.fc3(x)
         return fn.softplus(x)

@@ -1,5 +1,5 @@
 from collections import OrderedDict
-
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -14,14 +14,17 @@ class Network(nn.Module):
 
         self.network = torch.nn.Sequential(
             OrderedDict([
+                ('norm0', nn.BatchNorm1d(nb_features)),
                 ('fc1', nn.Linear(in_features=nb_features,
                                   out_features=params['network']['fc1'],
                                   bias=True)),
-                # ('relu1', nn.ReLU()),
+                ('norm1', nn.BatchNorm1d(params['network']['fc1'])),
+                ('relu1', nn.ReLU()),
                 ('fc2', nn.Linear(in_features=params['network']['fc1'],
                                   out_features=params['network']['fc2'],
                                   bias=True)),
-                # ('relu2', nn.ReLU()),
+                ('norm2', nn.BatchNorm1d(params['network']['fc2'])),
+                ('relu2', nn.ReLU()),
                 ('fc3', nn.Linear(in_features=params['network']['fc2'],
                                   out_features=nb_actions,
                                   bias=True)),

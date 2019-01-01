@@ -1,6 +1,6 @@
 {
   "model_name": "DDPG_v0",
-  "experiment_id": "exp_0",
+  "experiment_id": "exp_1_batchnorm_test",
   "overwrite_experiment": true,
   "mode": "train"
 }

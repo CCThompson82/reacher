@@ -83,10 +83,11 @@ class Model(BaseModel):
                             ('episode_count', int(np.mean(episode_counts))),
                             ('epsilon', self.epsilon(np.mean(episode_counts))),
                             ('buffer_size', '{}'.format(self.buffer_size)),
-                            ('critic loss', '{:5.3f}'.format(
+                            ('critic loss', '{:7.5f}'.format(
                                 np.round(self.critic_loss_, 4))),
                             ('actor_loss', '{:5.3f}'.format(self.actor_loss_)),
-                            ('mean episode', self.mean_episode_score)])
+                            ('mean episode', '{:4.3f}'.format(
+                                self.mean_episode_score))])
 
     def get_next_actions(self, states, episode):
         state_tensor = torch.from_numpy(states).float().to(self.actor.device)
@@ -154,13 +155,8 @@ class Model(BaseModel):
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
-        # for param in self.critic.parameters():
-        #     print(param.grad.data.sum())
-
         self.critic_optimizer.step()
-
         self.critic_loss_ = critic_loss.cpu().data.numpy()
-
 
         # train the actor
         # actions_pred = self.actor.forward(states_tensor)
