@@ -1,7 +1,7 @@
 {
   "network": {
-    "fc1": 64,
-    "fc2": 32
+    "fc1": 128,
+    "fc2": 64
   },
   "experience_buffer": {
     "max_tuples": 10000,
