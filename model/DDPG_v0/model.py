@@ -96,7 +96,8 @@ class Model(BaseModel):
         self.actor.train()
 
         if np.random.rand() <= self.epsilon(episode):
-            actions += np.random.randn(*actions.shape) * 0.25  # set sigma
+            actions += np.random.randn(*actions.shape) * 0.4  # set sigma
+
         return np.clip(actions, -1, 1)
 
     def store_experience(self, states, actions, rewards, next_states,
@@ -154,7 +155,7 @@ class Model(BaseModel):
 
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
-        nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
+        # nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
         self.critic_optimizer.step()
         self.critic_loss_ = critic_loss.cpu().data.numpy()
 

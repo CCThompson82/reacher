@@ -30,7 +30,7 @@ class Network(nn.Module):
                                   bias=True)),
                 ('tanh_out', nn.Tanh())]))
         self.network.to(self.device)
-        self.network.apply(self.init_weights)
+        # self.network.apply(self.init_weights)
 
     def forward(self, state):
         """
@@ -46,5 +46,5 @@ class Network(nn.Module):
     @staticmethod
     def init_weights(m):
         if type(m) == nn.Linear:
-            torch.nn.init.uniform_(m.weight, -2e-2, 2e-2)
+            torch.nn.init.uniform_(m.weight, -2e-1, 2e-1)
             m.bias.data.fill_(0.01)
