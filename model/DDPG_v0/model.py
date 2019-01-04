@@ -61,6 +61,8 @@ class Model(BaseModel):
             params=self.actor.parameters(),
             lr=self.hyperparams['actor_init_learning_rate'])
 
+        self.noise = OUNoise(env_config['nb_actions'], self.hyperparams['random_seed'])
+
         # progress bar attr
         self.critic_loss_ = 0
         self.actor_loss_ = 0
@@ -92,12 +94,14 @@ class Model(BaseModel):
     def get_next_actions(self, states, episode):
         state_tensor = torch.from_numpy(states).float().to(self.actor.device)
         self.actor.eval()
-        actions = self.actor.network.forward(state_tensor).cpu().data.numpy()
+        with torch.no_grad():
+            actions = self.actor.network.forward(state_tensor).cpu().data.numpy()
         self.actor.train()
 
         if np.random.rand() <= self.epsilon(episode):
-            actions += np.random.randn(*actions.shape) * 0.4  # set sigma
-
+            actions += self.noise.sample()
+            # actions += np.random.randn(*actions.shape) * 0.2  # set sigma
+        # actions += self.noise.sample()
         return np.clip(actions, -1, 1)
 
     def store_experience(self, states, actions, rewards, next_states,
@@ -149,13 +153,14 @@ class Model(BaseModel):
                 next_states_tensor))
         Q_target = rewards_tensor + (
                 self.hyperparams['gamma'] * future_return.cpu())
+
         self.critic.train()
         Q_expected = self.critic.forward(states_tensor, actions_tensor)
         critic_loss = fn.mse_loss(Q_expected, Q_target.to(self.critic.device))
 
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
-        # nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
+        nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
         self.critic_optimizer.step()
         self.critic_loss_ = critic_loss.cpu().data.numpy()
 
@@ -168,7 +173,6 @@ class Model(BaseModel):
         actor_loss.backward()
         self.actor_optimizer.step()
         self.actor_loss_ = actor_loss.cpu().detach().numpy()
-
         self.critic.train()
 
         self.soft_update(src_model=self.critic, dst_model=self.critic_target,
@@ -184,7 +188,7 @@ class Model(BaseModel):
             return 0
 
         if len(arr) < 100:
-            return np.round(np.mean(arr), 3)
+            return np.round(np.mean(arr[-1]), 3)
 
         return np.round(np.mean(arr[-1]), 3)
 
@@ -230,3 +234,27 @@ class Model(BaseModel):
         else:
             epsilon = (1.0/episode)**(1.0/epf)
         return np.round(epsilon, 3)
+
+import random
+import copy
+class OUNoise:
+    """Ornstein-Uhlenbeck process."""
+
+    def __init__(self, size, seed, mu=0., theta=0.15, sigma=0.2):
+        """Initialize parameters and noise process."""
+        self.mu = mu * np.ones(size)
+        self.theta = theta
+        self.sigma = sigma
+        self.seed = random.seed(seed)
+        self.reset()
+
+    def reset(self):
+        """Reset the internal state (= noise) to mean (mu)."""
+        self.state = copy.copy(self.mu)
+
+    def sample(self):
+        """Update internal state and return it as a noise sample."""
+        x = self.state
+        dx = self.theta * (self.mu - x) + self.sigma * np.array([random.random() for i in range(len(x))])
+        self.state = x + dx
+        return self.state
