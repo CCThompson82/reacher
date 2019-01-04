@@ -114,7 +114,7 @@ class Model(BaseModel):
                             next_state=next_states[idx],
                             done=episode_statuses[idx])
 
-    def check_training_status(self):
+    def check_training_status(self, step):
         """
         Check state of experience buffer or episode status and determine whether
         a training step should be run.
@@ -124,7 +124,8 @@ class Model(BaseModel):
         """
         status = (self.params['experience_buffer']['min_for_training'] <=
                   self.memory.__len__())
-        return status
+        train_step = step % self.hyperparams['train_frequency'] == 0
+        return np.all([status, train_step])
     
     def train_model(self):
         """
@@ -240,7 +241,7 @@ import copy
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
-    def __init__(self, size, seed, mu=0., theta=0.15, sigma=0.2):
+    def __init__(self, size, seed, mu=0., theta=0.15, sigma=0.05):
         """Initialize parameters and noise process."""
         self.mu = mu * np.ones(size)
         self.theta = theta

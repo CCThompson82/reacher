@@ -72,7 +72,8 @@ class ModelClient(object):
                                     episode_statuses)
 
     def training_status(self):
-        return self.model.check_training_status()
+        return self.model.check_training_status(
+            step=self.metrics['step_counts'][0])
 
     def train_model(self):
         self.model.train_model()
