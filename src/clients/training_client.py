@@ -59,7 +59,8 @@ class ModelClient(object):
         return self.model.progress_bar(**self.metrics)
 
     def get_next_actions(self, states):
-        actions = self.model.get_next_actions(states=states)
+        actions = self.model.get_next_actions(
+            states=states, episode=np.mean(self.metrics['episode_counts']))
 
         if np.any(np.fabs(actions) > 1.0):
             raise ValueError('Continuous actions cannot exceed absolute of 1')
@@ -71,10 +72,12 @@ class ModelClient(object):
                                     episode_statuses)
 
     def training_status(self):
-        return self.model.check_training_status()
+        return self.model.check_training_status(
+            step=self.metrics['step_counts'][0])
 
     def train_model(self):
-        self.model.execute_training_step()
+        self.model.train_model()
+        # self.model.execute_training_step()
 
     def update_metrics(self, rewards):
         self.metrics['step_counts'] += 1
@@ -84,6 +87,7 @@ class ModelClient(object):
         try:
             arr = np.load(self.model.dir_util.results_filename)
             arr = np.concatenate([arr, np.array([self.metrics['episode_scores']])], axis=0)
+            # print(np.mean(arr, axis=1))
         except FileNotFoundError:
             arr = np.array([self.metrics['episode_scores']])
 
@@ -93,3 +97,11 @@ class ModelClient(object):
     def reset_episode(self):
         self.metrics['episode_scores'][:] = 0
         self.metrics['episode_counts'] += 1
+
+    def checkpoint_step(self):
+        return (self.metrics['episode_counts'][0] %
+                self.model.hyperparams['checkpoint_freq'] == 0)
+
+    def create_checkpoint(self):
+        self.model.checkpoint_model(
+            episode_count=self.metrics['episode_counts'][0])

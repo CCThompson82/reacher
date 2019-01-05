@@ -1,6 +1,6 @@
 {
-  "model_name": "VanillaPolicyGradAscent",
-  "experiment_id": "exp_0",
+  "model_name": "DDPG_v0",
+  "experiment_id": "exp_4",
   "overwrite_experiment": true,
   "mode": "train"
 }

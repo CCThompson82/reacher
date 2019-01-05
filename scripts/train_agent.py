@@ -37,24 +37,23 @@ if __name__ == '__main__':
     client = ModelClient(env_config=env_config)
 
     # build buffer with by running episodes
-    pbar = tqdm(total=client.model.hyperparams['max_episodes'])
+    pbar = tqdm(total=client.model.hyperparams['max_episodes']*1001)
 
     while not client.training_finished():
-        pbar.set_postfix(
-            ordered_dict=client.progress_bar)
-        pbar.update()
+        # print(next(client.model.actor.parameters()).data[-1])
+        # print(next(client.model.critic.parameters()).data[-1])
 
         # reset for new episodes
         env_info = env.reset(train_mode=True)[brain.brain_name]
         states = env_info.vector_observations
 
-        for param in client.model.network.parameters():
-            print(param.data)
-            break
-
         while not client.terminate_episode(
                 max_reached_statuses=env_info.max_reached,
                 local_done_statuses=env_info.local_done):
+
+            pbar.set_postfix(
+                ordered_dict=client.progress_bar)
+            pbar.update()
 
             actions = client.get_next_actions(states=states)
 
@@ -66,16 +65,17 @@ if __name__ == '__main__':
 
             client.store_experience(
                 states, actions, rewards, next_states, episode_statuses)
+            client.update_metrics(rewards=rewards)
 
             if client.training_status():
                 client.train_model()
 
-            client.update_metrics(rewards=rewards)
+            states = next_states
 
         client.record_episode_scores()
 
-        # if client.checkpoint_step(model_config['checkpoint_frequency']):
-        #     client.checkpoint_model()
+        if client.checkpoint_step():
+            client.create_checkpoint()
 
 
 

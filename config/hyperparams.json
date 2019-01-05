@@ -1,5 +1,13 @@
 {
-  "max_episodes": 3,
+  "max_episodes": 500,
   "random_seed": 7,
-  "init_learning_rate": 1e-1
+  "actor_init_learning_rate": 1e-3,
+  "critic_init_learning_rate": 1e-3,
+  "training_steps": 15,
+  "train_frequency": 20,
+  "batch_size": 256,
+  "gamma": 0.99,
+  "tau": 1e-3,
+  "checkpoint_freq": 20,
+  "epsilon_root_factor": 2
 }
