@@ -87,6 +87,7 @@ class ModelClient(object):
         try:
             arr = np.load(self.model.dir_util.results_filename)
             arr = np.concatenate([arr, np.array([self.metrics['episode_scores']])], axis=0)
+            # print(np.mean(arr, axis=1))
         except FileNotFoundError:
             arr = np.array([self.metrics['episode_scores']])
 

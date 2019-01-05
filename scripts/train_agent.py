@@ -70,6 +70,8 @@ if __name__ == '__main__':
             if client.training_status():
                 client.train_model()
 
+            states = next_states
+
         client.record_episode_scores()
 
         if client.checkpoint_step():

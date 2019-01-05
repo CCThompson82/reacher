@@ -30,8 +30,8 @@ class Network(nn.Module):
         self.fc3 = nn.Linear(in_features=params['network']['fc2'],
                              out_features=1,
                              bias=True)
-        # self.reset_parameters()
-        #
+        self.reset_parameters()
+
     def reset_parameters(self):
         self.fc1.weight.data.uniform_(*hidden_init(self.fc1))
         self.fc2_with_concat.weight.data.uniform_(*hidden_init(self.fc2_with_concat))
@@ -55,6 +55,3 @@ class Network(nn.Module):
         x = self.fc3(x)
         return x
 
-    def init_uniform(self, layer):
-        if type(layer) == nn.Linear:
-            nn.init.uniform(layer, -1e-3, 1e-3)

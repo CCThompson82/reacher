@@ -95,13 +95,12 @@ class Model(BaseModel):
         state_tensor = torch.from_numpy(states).float().to(self.actor.device)
         self.actor.eval()
         with torch.no_grad():
-            actions = self.actor.network.forward(state_tensor).cpu().data.numpy()
+            actions = self.actor.forward(state_tensor).cpu().data.numpy()
         self.actor.train()
 
         if np.random.rand() <= self.epsilon(episode):
             actions += self.noise.sample()
-            # actions += np.random.randn(*actions.shape) * 0.2  # set sigma
-        # actions += self.noise.sample()
+
         return np.clip(actions, -1, 1)
 
     def store_experience(self, states, actions, rewards, next_states,
@@ -147,13 +146,14 @@ class Model(BaseModel):
         actions_tensor = torch.from_numpy(actions).float()
         next_states_tensor = torch.from_numpy(next_states).float()
         rewards_tensor = torch.from_numpy(rewards).float()
+        dones_tensor = torch.from_numpy(dones).float()
 
         # train the critic
         future_return = self.critic_target.forward(
             next_states_tensor, self.actor_target.forward(
                 next_states_tensor))
         Q_target = rewards_tensor + (
-                self.hyperparams['gamma'] * future_return.cpu())
+                self.hyperparams['gamma'] * future_return.cpu() * (1-dones_tensor))
 
         self.critic.train()
         Q_expected = self.critic.forward(states_tensor, actions_tensor)
@@ -167,12 +167,13 @@ class Model(BaseModel):
 
         # train the actor
         # actions_pred = self.actor.forward(states_tensor)
-        self.actor_optimizer.zero_grad()
-        actions_tensor = self.actor.forward(states_tensor)
+        actions_pred = self.actor.forward(states_tensor)
         self.critic.eval()
-        actor_loss = -self.critic.forward(states_tensor, actions_tensor).mean()
+        actor_loss = -self.critic.forward(states_tensor, actions_pred).mean()
+        self.actor_optimizer.zero_grad()
         actor_loss.backward()
         self.actor_optimizer.step()
+
         self.actor_loss_ = actor_loss.cpu().detach().numpy()
         self.critic.train()
 
@@ -180,6 +181,8 @@ class Model(BaseModel):
                          tau=self.hyperparams['tau'])
         self.soft_update(src_model=self.actor, dst_model=self.actor_target,
                          tau=self.hyperparams['tau'])
+
+        self.noise.reset()
 
     @property
     def mean_episode_score(self):
@@ -223,7 +226,7 @@ class Model(BaseModel):
     def checkpoint_model(self, episode_count):
         checkpoint_filename = os.path.join(
             self.dir_util.checkpoint_dir, 'actor_ckpt_{}.pth'.format(episode_count))
-        torch.save(self.actor.network.state_dict(), checkpoint_filename)
+        torch.save(self.actor.state_dict(), checkpoint_filename)
         checkpoint_filename = os.path.join(
             self.dir_util.checkpoint_dir, 'critic_ckpt_{}.pth'.format(episode_count))
         torch.save(self.critic.state_dict(), checkpoint_filename)
@@ -241,7 +244,7 @@ import copy
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
-    def __init__(self, size, seed, mu=0., theta=0.15, sigma=0.05):
+    def __init__(self, size, seed, mu=0., theta=0.15, sigma=0.1):
         """Initialize parameters and noise process."""
         self.mu = mu * np.ones(size)
         self.theta = theta
@@ -256,6 +259,6 @@ class OUNoise:
     def sample(self):
         """Update internal state and return it as a noise sample."""
         x = self.state
-        dx = self.theta * (self.mu - x) + self.sigma * np.array([random.random() for i in range(len(x))])
+        dx = self.theta * (self.mu - x) + self.sigma * np.random.randn(*self.state.shape)
         self.state = x + dx
         return self.state
