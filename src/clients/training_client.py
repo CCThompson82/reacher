@@ -9,7 +9,6 @@ import sys
 import json
 from pydoc import locate
 import numpy as np
-from collections import OrderedDict
 
 WORK_DIR = os.environ['ROOT_DIR']
 sys.path.append(WORK_DIR)
@@ -77,7 +76,6 @@ class ModelClient(object):
 
     def train_model(self):
         self.model.train_model()
-        # self.model.execute_training_step()
 
     def update_metrics(self, rewards):
         self.metrics['step_counts'] += 1
@@ -86,8 +84,8 @@ class ModelClient(object):
     def record_episode_scores(self):
         try:
             arr = np.load(self.model.dir_util.results_filename)
-            arr = np.concatenate([arr, np.array([self.metrics['episode_scores']])], axis=0)
-            # print(np.mean(arr, axis=1))
+            arr = np.concatenate(
+                [arr, np.array([self.metrics['episode_scores']])], axis=0)
         except FileNotFoundError:
             arr = np.array([self.metrics['episode_scores']])
 
