@@ -1,0 +1,17 @@
+{
+  "max_episodes": 100,
+  "random_seed": 7,
+  "actor_init_learning_rate": 1e-3,
+  "critic_init_learning_rate": 1e-3,
+  "clip_gradient": true,
+  "training_steps": 1,
+  "train_frequency": 20,
+  "batch_size": 256,
+  "gamma": 0.99,
+  "tau": 1e-3,
+  "checkpoint_freq": 20,
+  "epsilon_root_factor": 2,
+  "noise_theta": 0.15,
+  "noise_sigma": 0.05,
+  "noise_reset_epsilon": 0.25
+}
