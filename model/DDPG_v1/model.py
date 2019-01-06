@@ -256,3 +256,10 @@ class Model(BaseModel):
         else:
             epsilon = (1.0/episode)**(1.0/epf)
         return np.round(epsilon, 3)
+
+    def restore_checkpoint(self, ckpt_index):
+        actor_filename = os.path.join(
+            self.dir_util.checkpoint_dir, 'actor_ckpt_{}.pth'.format(
+                ckpt_index))
+        state_dict = torch.load(actor_filename)
+        self.actor.load_state_dict(state_dict)

@@ -1,6 +1,6 @@
 {
   "model_name": "DDPG_v1",
   "experiment_id": "exp_3",
-  "overwrite_experiment": false,
+  "overwrite_experiment": true,
   "mode": "eval"
 }
