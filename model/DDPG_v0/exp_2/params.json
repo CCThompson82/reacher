@@ -1,0 +1,10 @@
+{
+  "network": {
+    "fc1": 400,
+    "fc2": 300
+  },
+  "experience_buffer": {
+    "max_tuples": 10000,
+    "min_for_training": 128
+  }
+}
