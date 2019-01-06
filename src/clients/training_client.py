@@ -98,3 +98,21 @@ class ModelClient(object):
     def create_checkpoint(self):
         self.model.checkpoint_model(
             episode_count=self.metrics['episode_counts'][0])
+
+    @property
+    def checkpoints_list(self):
+        return os.listdir(self.model.dir_util.checkpoint_dir)
+
+    def evaluate_checkpoint(self, index):
+        """
+        Evaluates a model checkpoint for peak performance, i.e. not using
+        action noise, collecting experience, or training model networks.
+
+        Args:
+            index:
+
+        Returns:
+            None (writes results to disk)
+        """
+
+

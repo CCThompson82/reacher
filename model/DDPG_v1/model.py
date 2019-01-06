@@ -105,6 +105,8 @@ class Model(BaseModel):
             actions = self.actor.forward(state_tensor).cpu().data.numpy()
         self.actor.train()
 
+        # TODO: If mode is eval, epsilon is set to zero automatically and this
+        #  conditional is never triggered to add noise
         if np.random.rand() <= self.epsilon(episode):
             actions += self.noise.sample()
 
@@ -245,6 +247,9 @@ class Model(BaseModel):
         torch.save(self.critic.state_dict(), checkpoint_filename)
 
     def epsilon(self, episode):
+        if self.model_config['mode'] == 'eval':
+            return 0.0
+
         epf = self.hyperparams['epsilon_root_factor']
         if episode == 0:
             epsilon = 1.0
