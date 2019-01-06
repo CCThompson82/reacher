@@ -15,7 +15,7 @@ from unityagents import UnityEnvironment
 WORK_DIR = os.environ['ROOT_DIR']
 sys.path.append(WORK_DIR)
 
-from src.clients.training_client import ModelClient
+from src.clients.model_client import ModelClient
 
 UNITY_ENV_PATH = os.environ['UNITY_ENV_PATH']
 
