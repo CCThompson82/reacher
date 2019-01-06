@@ -15,7 +15,7 @@ sys.path.append(ROOT_DIR)
 
 
 class BaseModel(object):
-    def __init__(self, model_config, hyperparam_config, env_config):
+    def __init__(self, model_config, env_config):
         """
 
         Args:
@@ -25,13 +25,15 @@ class BaseModel(object):
         """
         # directory management
         self.dir_util = FileManager(model_config=model_config)
-        self.dir_util.dump_experiment_info(hyperparams=hyperparam_config)
 
         # attr
         self.model_config = model_config
-        self.hyperparams = hyperparam_config
+        self.hyperparams = json.load(
+            open(self.dir_util.exp_hyperparams_filename, 'r'))
         self.env_config = env_config
         self.params = json.load(open(self.dir_util.exp_params_filename, 'r'))
+        self.dir_util.dump_experiment_info(hyperparams=self.hyperparams,
+                                           params=self.params)
 
 
 class FileManager(object):
@@ -47,6 +49,9 @@ class FileManager(object):
         self.exp_params_filename = os.path.join(
             ROOT_DIR, 'model', self.model_name, model_config['experiment_id'],
             "params.json")
+        self.exp_hyperparams_filename = os.path.join(
+            ROOT_DIR, 'model', self.model_name, model_config['experiment_id'],
+            "hyperparams.json")
         self.results_dir = os.path.join(self.model_dir, 'results')
         self.results_filename = os.path.join(self.results_dir,
                                              'episode_scores.npy')
@@ -86,9 +91,11 @@ class FileManager(object):
         os.mkdir(os.path.join(self.model_dir, 'checkpoints'))
         os.mkdir(os.path.join(self.model_dir, 'experiment_info'))
 
-    def dump_experiment_info(self, hyperparams):
+    def dump_experiment_info(self, hyperparams, params):
         hyperparams['model_name'] = self.model_name
         hyperparams['experiment_id'] = self.experiment_id
+
+        hyperparams.update(params)
 
         filename = os.path.join(self.experiment_info_dir, 'params.json')
         with open(filename, 'w') as out:

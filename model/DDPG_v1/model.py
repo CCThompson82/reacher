@@ -6,6 +6,7 @@ from src.base_models.base_model import BaseModel
 from src.base_networks.actor import Network as Actor
 from src.base_networks.critic import Network as Critic
 from src.buffers.experience_buffer import ExperienceBuffer
+from src.utils.ornstein_uhlenbeck import OUNoise
 from collections import OrderedDict
 import torch
 nn = torch.nn
@@ -16,9 +17,8 @@ sys.path.append(WORK_DIR)
 
 
 class Model(BaseModel):
-    def __init__(self, model_config, hyperparam_config, env_config):
+    def __init__(self, model_config, env_config):
         super(Model, self).__init__(model_config=model_config,
-                                    hyperparam_config=hyperparam_config,
                                     env_config=env_config)
 
         self.actor = Actor(nb_features=env_config['nb_observations'],
@@ -43,17 +43,13 @@ class Model(BaseModel):
         self.critic.to(self.critic.device)
         self.critic_target.to(self.critic_target.device)
 
+        # use soft update method to do a full hard-update
         self.soft_update(
             src_model=self.actor, dst_model=self.actor_target, tau=1.0)
         self.soft_update(
             src_model=self.critic, dst_model=self.critic_target, tau=1.0)
 
-        self.memory = ExperienceBuffer(
-            action_size=env_config['nb_actions'],
-            max_buffer_size=self.params['experience_buffer']['max_tuples'],
-            batch_size=self.hyperparams['batch_size'],
-            seed=self.hyperparams['random_seed'])
-
+        # set up training optimizers
         self.critic_optimizer = torch.optim.Adam(
             params=self.critic.parameters(),
             lr=self.hyperparams['critic_init_learning_rate'])
@@ -61,7 +57,18 @@ class Model(BaseModel):
             params=self.actor.parameters(),
             lr=self.hyperparams['actor_init_learning_rate'])
 
-        self.noise = OUNoise(env_config['nb_actions'], self.hyperparams['random_seed'])
+        # set up ExperienceReplay buffer
+        self.memory = ExperienceBuffer(
+            action_size=env_config['nb_actions'],
+            max_buffer_size=self.params['experience_buffer']['max_tuples'],
+            batch_size=self.hyperparams['batch_size'],
+            seed=self.hyperparams['random_seed'])
+
+        # utility for generating noise within actions
+        self.noise = OUNoise(env_config['nb_actions'],
+                             self.hyperparams['random_seed'],
+                             theta=self.hyperparams['noise_theta'],
+                             sigma=self.hyperparams['noise_sigma'])
 
         # progress bar attr
         self.critic_loss_ = 0
@@ -153,7 +160,8 @@ class Model(BaseModel):
             next_states_tensor, self.actor_target.forward(
                 next_states_tensor))
         Q_target = rewards_tensor + (
-                self.hyperparams['gamma'] * future_return.cpu() * (1-dones_tensor))
+                self.hyperparams['gamma'] * future_return.cpu() *
+                (1-dones_tensor))
 
         self.critic.train()
         Q_expected = self.critic.forward(states_tensor, actions_tensor)
@@ -163,7 +171,6 @@ class Model(BaseModel):
         critic_loss.backward()
         nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
         self.critic_optimizer.step()
-        self.critic_loss_ = critic_loss.cpu().data.numpy()
 
         # train the actor
         # actions_pred = self.actor.forward(states_tensor)
@@ -173,16 +180,19 @@ class Model(BaseModel):
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
         self.actor_optimizer.step()
-
-        self.actor_loss_ = actor_loss.cpu().detach().numpy()
         self.critic.train()
+
+        # record for progress bar
+        self.critic_loss_ = critic_loss.cpu().data.numpy()
+        self.actor_loss_ = actor_loss.cpu().detach().numpy()
 
         self.soft_update(src_model=self.critic, dst_model=self.critic_target,
                          tau=self.hyperparams['tau'])
         self.soft_update(src_model=self.actor, dst_model=self.actor_target,
                          tau=self.hyperparams['tau'])
 
-        self.noise.reset()
+        if np.random.random() < self.hyperparams['reset_noise_epsilon']:
+            self.noise.reset()
 
     @property
     def mean_episode_score(self):
@@ -238,27 +248,3 @@ class Model(BaseModel):
         else:
             epsilon = (1.0/episode)**(1.0/epf)
         return np.round(epsilon, 3)
-
-import random
-import copy
-class OUNoise:
-    """Ornstein-Uhlenbeck process."""
-
-    def __init__(self, size, seed, mu=0., theta=0.15, sigma=0.1):
-        """Initialize parameters and noise process."""
-        self.mu = mu * np.ones(size)
-        self.theta = theta
-        self.sigma = sigma
-        self.seed = random.seed(seed)
-        self.reset()
-
-    def reset(self):
-        """Reset the internal state (= noise) to mean (mu)."""
-        self.state = copy.copy(self.mu)
-
-    def sample(self):
-        """Update internal state and return it as a noise sample."""
-        x = self.state
-        dx = self.theta * (self.mu - x) + self.sigma * np.random.randn(*self.state.shape)
-        self.state = x + dx
-        return self.state
