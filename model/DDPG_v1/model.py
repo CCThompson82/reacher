@@ -169,7 +169,8 @@ class Model(BaseModel):
 
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
-        nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
+        if self.hyperparams['clip_gradient']:
+            nn.utils.clip_grad_norm_(self.critic.parameters(), 1)
         self.critic_optimizer.step()
 
         # train the actor
