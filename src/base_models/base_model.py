@@ -68,7 +68,14 @@ class FileManager(object):
                 try:
                     os.mkdir(self.evaluation_dir)
                 except FileExistsError:
-                    pass
+                    if self.overwrite_experiment:
+                        shutil.rmtree(self.evaluation_dir)
+                        os.mkdir(self.evaluation_dir)
+                    else:
+                        raise FileExistsError(
+                            'Evaluation directory already exists, set the '
+                            'overwrite experiment parameter to True in order'
+                            'to overwrite a previous evaluation of this model.')
 
         elif self.mode == 'train':
             if not os.path.isdir(self.model_dir):

@@ -9,10 +9,7 @@ performance and model checkpoints will be written output regularly to
 """
 import os
 import sys
-
-import json
 from tqdm import tqdm
-from collections import OrderedDict
 from unityagents import UnityEnvironment
 
 WORK_DIR = os.environ['ROOT_DIR']
