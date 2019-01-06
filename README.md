@@ -12,7 +12,7 @@ moving goal volume.  A video of the environment is available [here](https://www.
 each feature of the action must be within [-1, 1]. 
 * This version of the environment runs 20 agents in parallel.  
 * Agents are rewarded with a score of 0.1 for each step in which the end of the robot arm is 
-within the floating goal volume, and a score of -0.1 for each step in which the robot arm does not
+within the floating goal volume, and a score of 0.0 for each step in which the robot arm does not
 end within the floating goal volume.  
 * The environment is considered solved when all 20 agents obtain an average episode score of +30.0 over the course 
 of 100 episodes.   
