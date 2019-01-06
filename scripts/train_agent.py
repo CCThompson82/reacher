@@ -9,10 +9,7 @@ performance and model checkpoints will be written output regularly to
 """
 import os
 import sys
-
-import json
 from tqdm import tqdm
-from collections import OrderedDict
 from unityagents import UnityEnvironment
 
 WORK_DIR = os.environ['ROOT_DIR']
@@ -40,8 +37,6 @@ if __name__ == '__main__':
     pbar = tqdm(total=client.model.hyperparams['max_episodes']*1001)
 
     while not client.training_finished():
-        # print(next(client.model.actor.parameters()).data[-1])
-        # print(next(client.model.critic.parameters()).data[-1])
 
         # reset for new episodes
         env_info = env.reset(train_mode=True)[brain.brain_name]

@@ -1,0 +1,6 @@
+{
+  "model_name": "DDPG_v1",
+  "experiment_id": "exp_1",
+  "overwrite_experiment": false,
+  "mode": "train"
+}

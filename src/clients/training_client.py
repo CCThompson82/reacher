@@ -9,11 +9,10 @@ import sys
 import json
 from pydoc import locate
 import numpy as np
-from collections import OrderedDict
 
 WORK_DIR = os.environ['ROOT_DIR']
 sys.path.append(WORK_DIR)
-MODEL_CONFIG_PATH = os.path.join(WORK_DIR, 'config', 'train.json')
+MODEL_CONFIG_PATH = os.path.join(WORK_DIR, 'config', 'model.json')
 HYPERPARAMS_CONFIG_PATH = os.path.join(WORK_DIR, 'config', 'hyperparams.json')
 
 
@@ -23,11 +22,7 @@ class ModelClient(object):
         with open(MODEL_CONFIG_PATH, 'r') as handle:
             model_config = json.load(handle)
 
-        with open(HYPERPARAMS_CONFIG_PATH, 'r') as handle:
-            hyperparams_config = json.load(handle)
-
         self.model = self.load_model(model_config=model_config,
-                                     hyperparams_config=hyperparams_config,
                                      env_config=env_config)
 
         # TODO: turn this into an object
@@ -36,14 +31,13 @@ class ModelClient(object):
                         'episode_scores': np.zeros([env_config['nb_agents']])}
 
     @staticmethod
-    def load_model(model_config, hyperparams_config, env_config):
+    def load_model(model_config, env_config):
         model_name = model_config['model_name']
         Model = locate('model.{}.model.Model'.format(model_name))
         if Model is None:
             raise FileNotFoundError('{} does not exist'.format(model_name))
 
         model = Model(model_config=model_config,
-                      hyperparam_config=hyperparams_config,
                       env_config=env_config)
         return model
 
@@ -77,7 +71,6 @@ class ModelClient(object):
 
     def train_model(self):
         self.model.train_model()
-        # self.model.execute_training_step()
 
     def update_metrics(self, rewards):
         self.metrics['step_counts'] += 1
@@ -86,8 +79,8 @@ class ModelClient(object):
     def record_episode_scores(self):
         try:
             arr = np.load(self.model.dir_util.results_filename)
-            arr = np.concatenate([arr, np.array([self.metrics['episode_scores']])], axis=0)
-            # print(np.mean(arr, axis=1))
+            arr = np.concatenate(
+                [arr, np.array([self.metrics['episode_scores']])], axis=0)
         except FileNotFoundError:
             arr = np.array([self.metrics['episode_scores']])
 
