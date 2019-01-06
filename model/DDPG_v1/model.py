@@ -191,7 +191,7 @@ class Model(BaseModel):
         self.soft_update(src_model=self.actor, dst_model=self.actor_target,
                          tau=self.hyperparams['tau'])
 
-        if np.random.random() < self.hyperparams['reset_noise_epsilon']:
+        if np.random.random() < self.hyperparams['noise_reset_epsilon']:
             self.noise.reset()
 
     @property
