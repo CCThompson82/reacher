@@ -235,10 +235,12 @@ class Model(BaseModel):
 
     def checkpoint_model(self, episode_count):
         checkpoint_filename = os.path.join(
-            self.dir_util.checkpoint_dir, 'actor_ckpt_{}.pth'.format(episode_count))
+            self.dir_util.checkpoint_dir, 'actor_ckpt_{}.pth'.format(
+                episode_count))
         torch.save(self.actor.state_dict(), checkpoint_filename)
         checkpoint_filename = os.path.join(
-            self.dir_util.checkpoint_dir, 'critic_ckpt_{}.pth'.format(episode_count))
+            self.dir_util.checkpoint_dir, 'critic_ckpt_{}.pth'.format(
+                episode_count))
         torch.save(self.critic.state_dict(), checkpoint_filename)
 
     def epsilon(self, episode):

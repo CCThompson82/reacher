@@ -21,12 +21,8 @@ class ModelClient(object):
 
         with open(MODEL_CONFIG_PATH, 'r') as handle:
             model_config = json.load(handle)
-        #
-        # with open(HYPERPARAMS_CONFIG_PATH, 'r') as handle:
-        #     hyperparams_config = json.load(handle)
 
         self.model = self.load_model(model_config=model_config,
-                                     # hyperparams_config=hyperparams_config,
                                      env_config=env_config)
 
         # TODO: turn this into an object
