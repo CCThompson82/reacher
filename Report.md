@@ -1,4 +1,4 @@
-## Deep RL Nanodegree Project: Banana Collector Navigation
+## Deep RL Nanodegree Project: Reacher
 
 ## Introduction
 
