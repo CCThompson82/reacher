@@ -113,3 +113,6 @@ clean-container: ## remove Docker container
 
 clean-image: ## remove Docker image
 	-$(DOCKER) image rm $(IMAGE_NAME)
+
+mount-prodmod: ## sync local data to data source
+	cp -r /mnt/reacher/data/DDPG_v1/exp_10 /workdir/data/DDPG_v1/exp_10

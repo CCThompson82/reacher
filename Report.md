@@ -100,8 +100,9 @@ Figure 2 - Evaluation of the model checkpoints made during training of the final
 training regime over the course of 100 episodes, without random action selection.  
 
 ### Loading the product model
-The final model weights can be restored and evaluated by running the `evaluate_product_model.py` 
-script, which loads the checkpoint weights from a mounted directory in the base docker image.  
+The final model weights can be restored and evaluated by running `make mount-prodmod` from inside
+a docker container, and then `python3 ./scripts/evaluate.py`.  
+The make command mounts pretrained checkpoint weights from a mounted directory in the base docker image.  
 The docker image is freely available at `ccthompson/drlnd:0.0.7` and will be pulled automatically
 via the installation instructions in the README.
 
