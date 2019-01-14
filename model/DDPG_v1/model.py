@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 import numpy as np
 from src.base_models.base_model import BaseModel
 from src.base_networks.actor import Network as Actor
@@ -105,6 +104,8 @@ class Model(BaseModel):
             actions = self.actor.forward(state_tensor).cpu().data.numpy()
         self.actor.train()
 
+        # TODO: If mode is eval, epsilon is set to zero automatically and this
+        #  conditional is never triggered to add noise
         if np.random.rand() <= self.epsilon(episode):
             actions += self.noise.sample()
 
@@ -245,9 +246,19 @@ class Model(BaseModel):
         torch.save(self.critic.state_dict(), checkpoint_filename)
 
     def epsilon(self, episode):
+        if self.model_config['mode'] == 'eval':
+            return 0.0
+
         epf = self.hyperparams['epsilon_root_factor']
         if episode == 0:
             epsilon = 1.0
         else:
             epsilon = (1.0/episode)**(1.0/epf)
         return np.round(epsilon, 3)
+
+    def restore_checkpoint(self, ckpt_index):
+        actor_filename = os.path.join(
+            self.dir_util.checkpoint_dir, 'actor_ckpt_{}.pth'.format(
+                ckpt_index))
+        state_dict = torch.load(actor_filename)
+        self.actor.load_state_dict(state_dict)

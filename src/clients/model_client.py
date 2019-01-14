@@ -98,3 +98,38 @@ class ModelClient(object):
     def create_checkpoint(self):
         self.model.checkpoint_model(
             episode_count=self.metrics['episode_counts'][0])
+
+    @property
+    def checkpoints_list(self):
+        return os.listdir(self.model.dir_util.checkpoint_dir)
+
+    def record_eval_episode_score(self, ckpt_index):
+        """
+        Args:
+            ckpt_index:
+
+        Returns:
+            None (writes results to disk)
+        """
+        eval_filename = os.path.join(
+            self.model.dir_util.evaluation_dir, '{}_eval.npy'.format(ckpt_index))
+        try:
+            arr = np.load(eval_filename)
+            arr = np.concatenate(
+                [arr, np.array([self.metrics['episode_scores']])], axis=0)
+        except FileNotFoundError:
+            try:
+                # eval checkpoint dir does not exist
+                os.mkdir(os.path.dirname(eval_filename))
+            except FileExistsError:
+                # eval checkpoint dir exists, but not trial filename
+                pass
+            arr = np.array([self.metrics['episode_scores']])
+        np.save(eval_filename, arr)
+        self.reset_episode()
+
+    def restore_checkpoint(self, ckpt_index):
+        self.model.restore_checkpoint(ckpt_index=ckpt_index)
+
+
+
