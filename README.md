@@ -21,7 +21,7 @@ of 100 episodes.
 
 This repository runs within the provided docker environment. The base image upon which this 
 repository's docker image is built is freely available from my DockerHub, 
-`ccthompson82/drlnd:0.0.6`.  No downloads are necessary if the instructions below are followed. 
+`ccthompson82/drlnd:0.0.7`.  No downloads are necessary if the instructions below are followed. 
 
 ### Dependencies
 * Python 2.7 or Python 3.5

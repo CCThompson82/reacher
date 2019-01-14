@@ -1,4 +1,4 @@
-## Deep RL Nanodegree Project: Banana Collector Navigation
+## Deep RL Nanodegree Project: Reacher
 
 ## Introduction
 
@@ -40,7 +40,7 @@ score over the course of an agent's training.
 
 ### Base Network Architecture
 
-![network](images/DDPG Network.png)
+![network](images/DDPG_Network.png)
 
 Figure 1 - Description of the Discrete Deep Policy Gradient model architecture.  
 
