@@ -1,6 +1,5 @@
 import os
 import sys
-import json
 import numpy as np
 from src.base_models.base_model import BaseModel
 from src.base_networks.actor import Network as Actor
